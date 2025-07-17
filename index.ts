@@ -1,5 +1,10 @@
-import express from 'express';
-import { getCardsInList, updateCardName, moveCardToTop, getMonitorableListIds } from './trello';
+import express, { Request, Response } from 'express';
+import {
+  getCardsInList,
+  updateCardName,
+  moveCardToTop,
+  getMonitorableListIds
+} from './trello';
 import { parseQuantidadeFromTitle } from './utils';
 import dotenv from 'dotenv';
 
@@ -11,32 +16,51 @@ app.use(express.json());
 const boardId = process.env.TRELLO_BOARD_ID!;
 let monitoredLists: string[] = [];
 
-async function initializeMonitoredLists() {
+async function initializeMonitoredLists(): Promise<void> {
   monitoredLists = await getMonitorableListIds(boardId);
   console.log("Listas monitoradas:", monitoredLists);
 }
 
-app.head('/webhook', (req, res) => {
+// Tipagem básica da estrutura esperada no req.body
+interface TrelloWebhookAction {
+  data: {
+    list?: {
+      id: string;
+    };
+  };
+}
+
+interface TrelloCard {
+  id: string;
+  name: string;
+}
+
+app.head('/webhook', (_req: Request, res: Response): void => {
   res.sendStatus(200);
 });
 
-app.post('/webhook', async (req, res) => {
+app.post('/webhook', async (req: Request, res: Response): Promise<void> => {
   try {
-    const action = req.body.action;
-    if (!action?.data?.list?.id) return res.sendStatus(200);
-
-    const listId = action.data.list.id;
-    if (!monitoredLists.includes(listId)) return res.sendStatus(200);
+    const action: TrelloWebhookAction = req.body.action;
+    if (!action?.data?.list?.id){ 
+      res.sendStatus(200);
+      return;
+    }
+    const listId: string = action.data.list.id;
+    if (!monitoredLists.includes(listId)) {
+      res.sendStatus(200);
+      return; 
+    } 
 
     console.log(`Recontando lista: ${listId}`);
 
-    const cards = await getCardsInList(listId);
+    const cards: TrelloCard[] = await getCardsInList(listId);
 
-    let total = 0;
-    let contadorCardId = null;
+    let total: number = 0;
+    let contadorCardId: string | null = null;
 
     for (const card of cards) {
-      const parsed = parseQuantidadeFromTitle(card.name);
+      const parsed: number = parseQuantidadeFromTitle(card.name);
       total += parsed;
 
       if (/^\d+(\.\d{3})*\s*-\s*PEÇAS$/i.test(card.name.trim())) {

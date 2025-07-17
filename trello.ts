@@ -53,7 +53,7 @@ export async function getMonitorableListIds(boardId: string): Promise<string[]> 
 
   for (const list of lists) {
     const cards = await getCardsInList(list.id);
-    const hasContadorCard = cards.some(card =>
+    const hasContadorCard = cards.some((card: {name:string})=>
       /^\d+(\.\d{3})*\s*-\s*PEÇAS$/i.test(card.name.trim())
     );
     if (hasContadorCard) {
