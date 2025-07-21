@@ -2,10 +2,13 @@
   "name": "order-counter",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "bin": "dist/index.js",
   "scripts": {
-    "ngrok": "ngrok.exe http --url=inspired-informally-skink.ngrok-free.app 9001",
-    "dev": "ts-node-dev --respawn --transpile-only index.ts"
+    "ngrok": "start ngrok.exe http --url=inspired-informally-skink.ngrok-free.app 9001",
+    "dev": "ts-node-dev --respawn --transpile-only index.ts",
+    "build": "tsc",
+    "start": "node dist/start.js"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +20,19 @@
     "express": "^5.1.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.3",
     "@types/node": "^24.0.14",
     "ts-node-dev": "^2.0.0"
+  },
+  "pkg": {
+    "scripts": "dist/**/*.js",
+    "assets": [
+      "ngrok.exe",
+      ".env"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "dist_exe"
   }
 }

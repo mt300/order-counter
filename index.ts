@@ -47,9 +47,14 @@ app.post('/webhook', async (req: Request, res: Response): Promise<void> => {
       return;
     }
     const listId: string = action.data.list.id;
+    //First check
     if (!monitoredLists.includes(listId)) {
-      res.sendStatus(200);
-      return; 
+      await initializeMonitoredLists()
+      //Second check (same as first after reinit lists)
+      if (!monitoredLists.includes(listId)) {
+        res.sendStatus(200);
+        return;
+      }
     } 
 
     console.log(`Recontando lista: ${listId}`);
